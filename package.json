@@ -1,0 +1,14 @@
+{
+    "name": "addons-builder-helper",
+    "license": "MPL 1.1/GPL 2.0/LGPL 2.1", 
+    "author": "Atul Varma (http://toolness.com/) <atul@mozilla.com>", 
+    "url": "http://mozillalabs.com/",
+    "version": "0.0.2", 
+    "dependencies": [
+        "jetpack-core", 
+        "development-mode"
+    ], 
+    "fullName": "Add-ons Builder Helper", 
+    "id": "jid0-t3eeRQgGANLCH9c50lPqcTDuNng", 
+    "description": "A Firefox addon for use with the Mozilla Add-ons Builder (formerly known as FlightDeck)."
+}
