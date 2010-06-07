@@ -20,7 +20,7 @@ that requires no restart.</p>
        style="cursor: pointer;">Uninstall Current Addon</span></li>
 </ul>
 
-<pre id="log"></pre>
+<pre id="log" style="white-space: pre-wrap;"></pre>
 
 <script>
 function log(msg) {
@@ -28,11 +28,22 @@ function log(msg) {
   elem.textContent += msg + "\n";
 }
 
+function verifyMozFlightDeck() {
+  if (!window.mozFlightDeck) {
+    log("window.mozFlightDeck not found. You may need to install " +
+        "the Addon Builder Helper extension and/or make sure that " +
+        "this page's origin is in the data/addon-config.json file.");
+    return false;
+  }
+  return true;
+}
+
 function onError() {
   log("an error occurred.");
 }
 
 function uninstall() {
+  if (!verifyMozFlightDeck()) return;
   log("uninstalling current addon");
   var msg = {cmd: "uninstall"};
   var result = window.mozFlightDeck.send(msg);
@@ -40,11 +51,13 @@ function uninstall() {
 }
 
 function isInstalled() {
+  if (!verifyMozFlightDeck()) return;
   var msg = {cmd: "isInstalled"};
   log("result: " + JSON.stringify(window.mozFlightDeck.send(msg)));
 }
 
 function install(url) {
+  if (!verifyMozFlightDeck()) return;
   var req = new XMLHttpRequest();
   req.open("GET", url);
   req.overrideMimeType('text/plain; charset=x-user-defined');
