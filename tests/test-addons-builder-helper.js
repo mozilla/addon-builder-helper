@@ -26,26 +26,27 @@ exports.testAttachApiToChannel = function(test) {
   abh.attachApiToChannel(fakeChannel, fakeManager);
 
   test.assertEqual(JSON.stringify(onMessage({})),
-                   JSON.stringify({msg: "bad request"}));
+                   JSON.stringify({success: false, msg: "bad request"}));
   test.assertEqual(JSON.stringify(onMessage({cmd: 'isInstalled'})),
-                   JSON.stringify({isInstalled: false}));
+                   JSON.stringify({success: true, isInstalled: false}));
   fakeManager.isInstalled = true;
   test.assertEqual(JSON.stringify(onMessage({cmd: 'isInstalled'})),
-                   JSON.stringify({isInstalled: true}));
+                   JSON.stringify({success: true, isInstalled: true}));
   test.assertEqual(JSON.stringify(onMessage({cmd: 'install'})),
-                   JSON.stringify({msg: "need data"}));
+                   JSON.stringify({success: false, msg: "need data"}));
 
   test.assertEqual(lastXpiData, undefined);
   test.assertEqual(JSON.stringify(onMessage({cmd: 'install',
                                              contents: 'u'})),
-                   JSON.stringify({msg: "installed"}));
+                   JSON.stringify({success: true, msg: "installed"}));
   test.assertEqual(lastXpiData, 'u');
   test.assertEqual(uninstallCalled, 0);
   test.assertEqual(JSON.stringify(onMessage({cmd: 'uninstall'})),
-                   JSON.stringify({msg: "uninstalled"}));
+                   JSON.stringify({success: true, msg: "uninstalled"}));
   test.assertEqual(uninstallCalled, 1);
   test.assertEqual(JSON.stringify(onMessage({cmd: 'blap'})),
-                   JSON.stringify({msg: "unknown command: blap"}));
+                   JSON.stringify({success: false,
+                                   msg: "unknown command: blap"}));
 };
 
 exports.testSingleAddonManager = function(test) {
@@ -90,7 +91,7 @@ exports.testChannelErrorWrapper = function(test) {
   func = abh.channelErrorWrapper(function() { o(); },
                                  mockConsole);
   test.assertEqual(JSON.stringify(func()),
-                   JSON.stringify({msg: "internal error"}),
+                   JSON.stringify({success: false, msg: "internal error"}),
                    "channelErrorWrapper must return JSON response on err");
 
   test.assertEqual(exceptions[0].toString(),
