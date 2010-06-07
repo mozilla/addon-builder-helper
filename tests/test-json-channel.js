@@ -39,6 +39,7 @@ exports.testBasic = function(test) {
                                  }, ARB_TIMEOUT);
               },
               ARB_TIMEOUT);
+            return {msg: 'gotcha'};
           });
       }
     });

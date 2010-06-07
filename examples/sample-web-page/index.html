@@ -10,28 +10,56 @@ that requires no restart.</p>
 <p>This page requires the experimental FlightDeck Addon.</p>
 
 <ul style="color: blue;">
-  <li><span onclick="install('https://secure.toolness.com/xpi/facebook-acquaintances.xpi');" style="cursor: pointer;">Install Facebook Acquaintances</span></li>
-  <li><span onclick="install('https://secure.toolness.com/xpi/cuddlefish-lab.xpi');" style="cursor: pointer;">Install Cuddlefish Lab</span></li>
-  <li><span onclick="install('https://secure.toolness.com/xpi/nonexistent.xpi');" style="cursor: pointer;">Install Nonexistent XPI</span></li>
+  <li><span onclick="install('facebook-acquaintances.xpi');"
+       style="cursor: pointer;">Install Facebook Acquaintances</span></li>
+  <li><span onclick="install('cuddlefish-lab.xpi');"
+       style="cursor: pointer;">Install Cuddlefish Lab</span></li>
+  <li><span onclick="isInstalled();"
+       style="cursor: pointer;">Get Installation Status</span></li>
+  <li><span onclick="uninstall();"
+       style="cursor: pointer;">Uninstall Current Addon</span></li>
 </ul>
 
+<pre id="log"></pre>
+
 <script>
-function install(url) {
-  // Send a message to the browser instructing it to download
-  // and install the addon.
-  window.mozFlightDeck.send({cmd: "install", path: url});
+function log(msg) {
+  var elem = document.getElementById("log");
+  elem.textContent += msg + "\n";
 }
 
-window.addEventListener("load", function() {
-  // We have to wait to register this callback because, sadly,
-  // window.mozFlightDeck isn't added to the window until the
-  // window is loaded.
-  window.mozFlightDeck.whenMessaged(function(data) {
-    // This gets called when one of our extensions has been installed
-    // successfully, or failed somehow.
-    alert(JSON.stringify(data));
-  });
-}, false);
+function onError() {
+  log("an error occurred.");
+}
+
+function uninstall() {
+  log("uninstalling current addon");
+  var msg = {cmd: "uninstall"};
+  var result = window.mozFlightDeck.send(msg);
+  log("result: " + JSON.stringify(result));
+}
+
+function isInstalled() {
+  var msg = {cmd: "isInstalled"};
+  log("result: " + JSON.stringify(window.mozFlightDeck.send(msg)));
+}
+
+function install(url) {
+  var req = new XMLHttpRequest();
+  req.open("GET", url);
+  req.overrideMimeType('text/plain; charset=x-user-defined');
+  req.addEventListener('error', onError, false);
+  req.addEventListener('abort', onError, false);
+  req.addEventListener('load', function() {
+    // Send a message to the browser instructing it to 
+    // install the addon.
+    var msg = {cmd: "install", contents: req.responseText};
+    log("installing " + url);
+    var result = window.mozFlightDeck.send(msg);
+    log("response: " + JSON.stringify(result));
+  }, false);
+  req.send(null);
+}
 </script>
 </body>
 </html>

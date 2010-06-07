@@ -14,7 +14,9 @@ function onLoad() {
   window.boop.whenMessaged(function(data) {
     foo.textContent = "got " + JSON.stringify(data);
   });
-  window.boop.send("HAI2u!");
+  var result = window.boop.send("HAI2u!");
+  if (!(result && result.msg == 'gotcha'))
+    throw new Error('expected result.msg == "gotcha"');
 }
 window.addEventListener("load", onLoad, false);
 </script>
