@@ -48,6 +48,27 @@ Valid command strings are:
 See `examples/sample-web-page/index.html` for example code that uses
 this API.
 
-## TODOs ##
+## Limitations ##
 
-* [Make FlightDeck addon restartless](https://bugzilla.mozilla.org/show_bug.cgi?id=566256)
+Haven't yet made Bugzilla bugs for these.
+
+* It's currently only possible for one addon to be "installed in
+  development mode" at a time. Could be nice in the long-term to
+  allow for multiple ones to be installed.
+
+* There's currently no way to debug the addons in development
+  mode; in particular, their `console.log()` calls don't go
+  anywhere. We should probably have these be sent back to
+  the Addon Builder, at the very least.
+
+* The Addon Builder Helper doesn't currently deal with the case where
+  addons raise exceptions while being installed or uninstalled in
+  development mode.
+
+* Addons installed in development mode don't stay installed after
+  Firefox restarts. Some think this is a feature, though, not
+  a bug.
+
+* If the user has an addon installed via the Firefox Addon Manager
+  and then tries installing the same addon in development mode
+  using the Addon Builder Helper, an explosion occurs.
