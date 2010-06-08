@@ -34,7 +34,8 @@ Valid command strings are:
 
 * `isInstalled` - Queries if an addon is currently
   installed in development mode, placing the boolean result
-  in `response.isInstalled`.
+  in `response.isInstalled`. `response.installedID` will be
+  the addon's ID.
 
 * `uninstall` - If an addon is currently installed in development
   mode, uninstalls it.  If no addon is currently installed, this

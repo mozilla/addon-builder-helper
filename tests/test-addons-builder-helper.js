@@ -16,6 +16,7 @@ exports.testAttachApiToChannel = function(test) {
   var uninstallCalled = 0;
   var fakeManager = {
     isInstalled: false,
+    installedID: null,
     install: function(xpiData) {
       lastXpiData = xpiData;
     },
@@ -28,10 +29,13 @@ exports.testAttachApiToChannel = function(test) {
   test.assertEqual(JSON.stringify(onMessage({})),
                    JSON.stringify({success: false, msg: "bad request"}));
   test.assertEqual(JSON.stringify(onMessage({cmd: 'isInstalled'})),
-                   JSON.stringify({success: true, isInstalled: false}));
+                   JSON.stringify({success: true, isInstalled: false,
+                                   installedID: null}));
   fakeManager.isInstalled = true;
+  fakeManager.installedID = 'bleh';
   test.assertEqual(JSON.stringify(onMessage({cmd: 'isInstalled'})),
-                   JSON.stringify({success: true, isInstalled: true}));
+                   JSON.stringify({success: true, isInstalled: true,
+                                   installedID: 'bleh'}));
   test.assertEqual(JSON.stringify(onMessage({cmd: 'install'})),
                    JSON.stringify({success: false, msg: "need data"}));
 
@@ -55,6 +59,7 @@ exports.testSingleAddonManager = function(test) {
   function fakeInstallExtension(xpiData) {
     test.assertEqual(typeof(xpiData), "string");
     return {
+      id: 'blargle',
       unload: function() {
         unloadCalled++;
       }
@@ -63,8 +68,10 @@ exports.testSingleAddonManager = function(test) {
 
   var sam = new abh.SingleAddonManager(fakeInstallExtension);
   test.assertEqual(sam.isInstalled, false);
+  test.assertEqual(sam.installedID, null);
   sam.install("foo");
   test.assertEqual(sam.isInstalled, true);
+  test.assertEqual(sam.installedID, 'blargle');
   test.assertEqual(unloadCalled, 0);
   sam.install("bar");
   test.assertEqual(sam.isInstalled, true);
