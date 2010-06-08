@@ -27,20 +27,23 @@ send the addon.
 
 `response` has at least one boolean property,
 `response.success`, indicating whether the command executed
-successfully. If it is `false`, then the string `response.msg`
-explains why.
+successfully. If it is `false`, then `response.msg`
+is a string explaining why.
 
-Valid values for `request.cmd` are:
+Valid command strings are:
 
-* `'isInstalled'` - Returns a response with a boolean property called
-  `response.isInstalled` which indicates if an addon is currently
-  installed in development mode.
+* `isInstalled` - Queries if an addon is currently
+  installed in development mode, placing the boolean result
+  in `response.isInstalled`.
 
-* `'uninstall'` - If an addon is currently installed, uninstalls it.
-  If no addon is uninstalled, this command does nothing.
+* `uninstall` - If an addon is currently installed in development
+  mode, uninstalls it.  If no addon is currently installed, this
+  command does nothing.
 
-* `'install'` - Installs an addon. Requires `obj.contents` to be a
-  string representing binary XPI data.
+* `install` - Installs an addon in development mode, uninstalling
+  any predecessor. `obj.contents` must be a string representing binary
+  XPI data; due to bug 541828, corrupt values can actually crash
+  some versions of Firefox, so be careful!
 
 See `examples/sample-web-page/index.html` for example code that uses
 this API.
