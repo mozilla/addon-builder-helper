@@ -3,8 +3,9 @@ var url = require("url");
 var shellUtils = require("shell-utils");
 var file = require("file");
 
-var fooPath = url.toFilename(url.resolve(__url__, "foo.zip"));
-var corruptPath = url.toFilename(url.resolve(__url__, "corrupt.zip"));
+var mydir = file.dirname(url.toFilename(__url__));
+var fooPath = file.join(mydir, "foo.zip");
+var corruptPath = file.join(mydir, "corrupt.zip");
 
 exports.testCorrupted = function(test) {
   test.pass("TODO: Remove the return statement in this test " +

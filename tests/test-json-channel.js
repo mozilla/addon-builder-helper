@@ -6,8 +6,11 @@ const ARB_TIMEOUT = 100;
 
 exports.testBasic = function(test) {
   var manager = require("json-channel").createManager("boop");
-  var indexUrl = require("url").resolve(__url__, "test-json-channel.html");
-  
+  var file = require("file");
+  var url = require("url");
+  var mydir = file.dirname(url.toFilename(__url__));
+  var indexUrl = url.fromFilename(file.join(mydir, "test-json-channel.html"));
+
   var tracker = tabBrowser.whenContentLoaded(
     function(window) {
       if (window.location == indexUrl) {
