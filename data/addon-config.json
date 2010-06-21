@@ -1,6 +1,12 @@
 {
   "trustedOrigins": [
     "https://builder.addons.mozilla.org/",
-    "https://lm-app-flightdeck01.mozillalabs.com/"
+    "https://builder.mozillalabs.com",
+    "https://lm-app-flightdeck-dev01.labs.mozilla.org",
+    "https://lm-app-flightdeck-dev01.mozillalabs.com",
+    "https://lm-app-flightdeck-stage01.labs.mozilla.org",
+    "https://lm-app-flightdeck-stage01.mozillalabs.com",
+    "https://lm-app-flightdeck01.labs.mozilla.org",
+    "https://lm-app-flightdeck01.mozillalabs.com"
   ]
 }
