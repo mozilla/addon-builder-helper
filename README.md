@@ -13,6 +13,10 @@ the Mozilla Add-ons Builder (formerly known as FlightDeck).
    `mozFlightDeck` object added to their `window`
    object. See below for its API.
 
+3. As soon as the addon is activated, an event of type
+   `addonbuilderhelperstart` will be dispatched to the
+   `document.body` element of every open tab.
+
 ## API ##
 
 <tt>window.mozFlightDeck.**send**(*request*)</tt>
