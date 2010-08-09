@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>hi</title>
+<p>Hello.</p>
+<script>
+window.gotFoo = false;
+
+window.addEventListener("DOMContentLoaded", function() {
+  document.body.addEventListener("foo", function() {
+    window.gotFoo = true;
+  }, false);
+}, false);
+</script>
