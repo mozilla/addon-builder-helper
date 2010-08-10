@@ -3,11 +3,13 @@ the Mozilla Add-ons Builder (formerly known as FlightDeck).
 
 ## Usage ##
 
-1. If necessary, edit the file `data/addon-config.json` so
-   that it contains the URL(s) for origins that host the Mozilla
-   Add-ons Builder. The scheme, host, and port of each URL
-   make up its "origin", meaning that the rest of the URL
-   will be ignored when making trust decisions.
+1. If necessary, either edit the file `data/addon-config.json` so that
+   it contains the URL(s) for origins that host the Mozilla Add-ons
+   Builder or set the `extensions.addonBuilderHelper.trustedOrigins`
+   preference in `about:config` to a comma-delimited list of
+   origins. The scheme, host, and port of each URL make up its
+   "origin", meaning that the rest of the URL will be ignored when
+   making trust decisions.
 
 2. All pages under a trusted origin will automatically have a
    `mozFlightDeck` object added to their `window`
