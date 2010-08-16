@@ -3,7 +3,7 @@
     "license": "MPL 1.1/GPL 2.0/LGPL 2.1", 
     "author": "Atul Varma (http://toolness.com/) <atul@mozilla.com>", 
     "url": "http://github.com/toolness/addons-builder-helper",
-    "version": "0.0.8", 
+    "version": "0.0.9", 
     "dependencies": [
         "jetpack-core", 
         "development-mode"
