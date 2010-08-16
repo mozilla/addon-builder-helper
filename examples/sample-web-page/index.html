@@ -73,6 +73,17 @@ function install(url) {
   }, false);
   req.send(null);
 }
+
+onload = function() {
+  document.body.addEventListener("addonbuilderhelperstart", function() {
+    log("message received: addonbuilderhelperstart");
+    log("  'mozFlightDeck' in window = " + ('mozFlightDeck' in window));
+  }, false);
+  document.body.addEventListener("addonbuilderhelperfinish", function() {
+    log("message received: addonbuilderhelperfinish");
+    log("  'mozFlightDeck' in window = " + ('mozFlightDeck' in window));
+  }, false);
+};
 </script>
 </body>
 </html>
