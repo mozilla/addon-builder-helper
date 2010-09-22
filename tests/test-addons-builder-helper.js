@@ -1,5 +1,5 @@
 function getModuleGlobal(module) {
-  var sb = require("cuddlefish").parentLoader.findSandboxForModule(module);
+  var sb = require("parent-loader").findSandboxForModule(module);
   return sb.globalScope;
 }
 
