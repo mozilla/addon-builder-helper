@@ -5,13 +5,28 @@ var tof = require("trusted-origin-filter");
 // TODO: Replace arb timeout w/ "real" deterministic event handling.
 const ARB_TIMEOUT = 100;
 
-exports.testMalformedOriginThrows = function(test) {
-  test.assertRaises(function() { tof.wrap([1]); },
-                    "malformed origin URI: 1");
-  test.assertRaises(function() { tof.wrap(["chrome://nou"]); },
-                    "malformed origin URI: chrome://nou");
-  tof.wrap(["http://localhost:8000/"]);
-  test.pass("wrapping a valid URL doesn't throw");
+exports.testMalformedOriginLogsErrors = function(test) {
+  var errors = [];
+  var fakeConsole = {
+    error: function(msg) {
+      errors.push(msg);
+    }
+  };
+  
+  function testErrors(against, msg) {
+    test.assertEqual(JSON.stringify(errors), JSON.stringify(against),
+                     msg);
+    errors = [];
+  }
+
+  tof.wrap([1], undefined, fakeConsole);
+  testErrors(["malformed origin URI: 1"]);
+
+  tof.wrap(["chrome://nou"], undefined, fakeConsole);
+  testErrors(["malformed origin URI: chrome://nou"]);
+
+  tof.wrap(["http://localhost:8000/"], undefined, fakeConsole);
+  testErrors([], "wrapping a valid URL doesn't log errors");
 };
 
 exports.testBasic = function(test) {
