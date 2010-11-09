@@ -8,16 +8,13 @@ var fooPath = file.join(mydir, "foo.zip");
 var corruptPath = file.join(mydir, "corrupt.zip");
 
 exports.testCorrupted = function(test) {
-  test.pass("TODO: Remove the return statement in this test " +
-            "once bug 541828 is fixed.");
-  return;
-
   var zip = zipFile.open(corruptPath);
-  console.log("packaging.id is", JSON.stringify(packaging.options));
-  return;
-  test.assertEqual(JSON.stringify(zip.entries),
-                   '["foo/bar.txt","foo/"]',
-                   "Entries should be readable.");
+  try {
+    zip.entries;
+    test.fail("getting entries from corrupt zip file should fail");
+  } catch (e if e.result == require("chrome").Cr.NS_ERROR_FILE_CORRUPTED) {
+    test.pass("opening corrupted files throws error");
+  }
 };
 
 exports.testEntries = function(test) {
