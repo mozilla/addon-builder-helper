@@ -1,3 +1,7 @@
+// Need to do this to be able to require parent-loader and get
+// the global scope for our module, so we can test private functions.
+require("chrome");
+
 function getModuleGlobal(module) {
   var sb = require("parent-loader").findSandboxForModule(module);
   return sb.globalScope;
