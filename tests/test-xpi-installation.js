@@ -50,6 +50,12 @@ exports.testXPI = function(test) {
   var file = getDataFile(XPI_FILENAME);
   var appReadyTopicHasFired = false;
 
+  if (!file.exists()) {
+    test.fail("Please run build.py to build sample XPIs needed by " +
+              "this test.");
+    return;
+  }
+
   cleanseEnvironment();
 
   AddonManager.getInstallForFile(file, function(install) {
