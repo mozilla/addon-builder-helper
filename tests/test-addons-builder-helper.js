@@ -9,6 +9,15 @@ function getModuleGlobal(module) {
 
 var abh = getModuleGlobal("addons-builder-helper");
 
+exports.testAddonConfigJsonIsValid = function(test) {
+  var config = abh.safeGetConfig();
+  test.assert(config.trustedOrigins.length > 0,
+              "At least one trusted origin exists");
+  // Ensure that trusted origins can be passed to the filter
+  // without any errors being logged.
+  require("trusted-origin-filter").wrap(config.trustedOrigins, function() {});
+};
+
 exports.testAttachApiToChannel = function(test) {
   var onMessage;
   var fakeChannel = {

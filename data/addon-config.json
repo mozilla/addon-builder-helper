@@ -1,6 +1,6 @@
 {
   "trustedOrigins": [
-    "https://builder-addons.allizom.org"
+    "https://builder-addons.allizom.org",
     "https://builder.addons.mozilla.org/",
     "https://builder.mozillalabs.com",
     "https://lm-app-flightdeck-dev01.labs.mozilla.org",
