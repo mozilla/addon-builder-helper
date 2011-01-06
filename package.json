@@ -5,7 +5,7 @@
     "url": "http://github.com/toolness/addons-builder-helper",
     "version": "0.0.17", 
     "dependencies": [
-        "jetpack-core", 
+        "api-utils",
         "development-mode"
     ],
     "main": "addons-builder-helper",
