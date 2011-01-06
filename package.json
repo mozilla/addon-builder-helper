@@ -1,15 +1,15 @@
 {
     "name": "addons-builder-helper",
-    "license": "MPL 1.1/GPL 2.0/LGPL 2.1", 
-    "author": "Atul Varma (http://toolness.com/) <atul@mozilla.com>", 
+    "license": "MPL 1.1/GPL 2.0/LGPL 2.1",
+    "author": "Atul Varma (http://toolness.com/) <atul@mozilla.com>",
     "url": "http://github.com/toolness/addons-builder-helper",
-    "version": "0.0.17", 
+    "version": "0.0.18",
     "dependencies": [
         "api-utils",
         "development-mode"
     ],
     "main": "addons-builder-helper",
-    "fullName": "Add-on Builder Helper", 
-    "id": "jid0-t3eeRQgGANLCH9c50lPqcTDuNng", 
+    "fullName": "Add-on Builder Helper",
+    "id": "jid0-t3eeRQgGANLCH9c50lPqcTDuNng",
     "description": "Add-on Builder Helper helps you use Add-on Builder, Mozilla's web application for building Firefox add-ons. It gives Add-on Builder the ability to install and try out add-ons as they are being developed."
 }
