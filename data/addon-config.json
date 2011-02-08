@@ -1,14 +1,8 @@
 {
   "trustedOrigins": [
+	"http://flightdeck.zalewa.info/",
     "https://builder-addons.allizom.org",
     "https://builder-addons-next.allizom.org",
-    "https://builder.addons.mozilla.org/",
-    "https://builder.mozillalabs.com",
-    "https://lm-app-flightdeck-dev01.labs.mozilla.org",
-    "https://lm-app-flightdeck-dev01.mozillalabs.com",
-    "https://lm-app-flightdeck-stage01.labs.mozilla.org",
-    "https://lm-app-flightdeck-stage01.mozillalabs.com",
-    "https://lm-app-flightdeck01.labs.mozilla.org",
-    "https://lm-app-flightdeck01.mozillalabs.com"
+    "https://builder.addons.mozilla.org/"
   ]
 }
