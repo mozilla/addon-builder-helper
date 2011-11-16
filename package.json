@@ -3,7 +3,7 @@
     "license": "MPL 1.1/GPL 2.0/LGPL 2.1",
     "author": "Atul Varma (http://toolness.com/) <atul@mozilla.com>",
     "url": "http://github.com/mozilla/addon-builder-helper",
-    "version": "0.0.18",
+    "version": "0.0.19",
     "dependencies": [
         "api-utils",
         "development-mode"
