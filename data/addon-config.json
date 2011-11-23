@@ -2,6 +2,7 @@
   "trustedOrigins": [
 	"http://flightdeck.zalewa.info/",
     "https://builder-addons.allizom.org",
+	"https://builder-addons-dev.allizom.org",
     "https://builder-addons-next.allizom.org",
     "https://builder.addons.mozilla.org/"
   ]
