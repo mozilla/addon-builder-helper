@@ -1,6 +1,14 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
 const { Cc, Ci, Cu } = require("chrome");
 const tabs = require("addon-kit/tabs");
 const { Services } = Components.utils.import("resource://gre/modules/Services.jsm");
+
+const { readBinaryURI } = require("file-utils");
+
+const TEST_ADDON_URL = require("self").data.url("abh-unit-test@mozilla.com.xpi");
 
 // First register "data:*" URLs as being AddonBuilder trusted URLs
 require("api-utils/preferences-service").set(
@@ -132,21 +140,6 @@ exports.testIsInstalled = createTest(
   function (test, worker, done) {}
 );
 
-// Utility function that synchronously reads local resource from the given
-// `uri` and returns content string. Read in binary mode.
-const {ByteReader} = require("api-utils/byte-streams");
-function readURI(uri) {
-  let ioservice = Cc["@mozilla.org/network/io-service;1"].getService(Ci.nsIIOService);
-  let channel = ioservice.newChannel(uri, "UTF-8", null);
-  let stream = channel.open();
-
-  let reader = new ByteReader(stream);
-  let data = reader.read();
-  stream.close();
-
-  return data;
-}
-
 exports.testInstall = createTest(
   "new " + function ContentScriptScope() {
     function assertIsInstalled(addonId, msg, next) {
@@ -188,17 +181,19 @@ exports.testInstall = createTest(
 
     // Save all events distpatched by bootstrap.js of the installed addon
     let events = [];
-    Services.obs.addObserver({
+    let eventsObserver = {
       observe: function (subject, topic, data) {
         events.push(data);
       }
-    }, "abh-unit-test", false);
+    };
+    Services.obs.addObserver(eventsObserver, "abh-unit-test", false);
 
     // We can't use self.data.load as it doesn't read in binary mode!
-    let xpiData = readURI(require("self").data.url("abh-unit-test@mozilla.com.xpi"));
+    let xpiData = readBinaryURI(TEST_ADDON_URL);
     worker.port.emit("xpiData", xpiData);
 
     worker.port.on("uninstalled", function () {
+      Services.obs.removeObserver(eventsObserver, "abh-unit-test");
       test.assertEqual(JSON.stringify(events),
                        JSON.stringify(["install", "startup", "shutdown", "uninstall"]),
                        "addon's bootstrap.js functions have been called");
