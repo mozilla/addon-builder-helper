@@ -1,120 +1,203 @@
-// Need to do this to be able to require parent-loader and get
-// the global scope for our module, so we can test private functions.
-require("chrome");
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-function getModuleGlobal(module) {
-  var sb = require("parent-loader").findSandboxForModule(module);
-  return sb.globalScope;
+const { Cc, Ci, Cu } = require("chrome");
+const tabs = require("addon-kit/tabs");
+const { Services } = Components.utils.import("resource://gre/modules/Services.jsm");
+
+const { readBinaryURI } = require("file-utils");
+
+const TEST_ADDON_URL = require("self").data.url("abh-unit-test@mozilla.com.xpi");
+
+// First register "data:*" URLs as being AddonBuilder trusted URLs
+require("api-utils/preferences-service").set(
+  "extensions.addonBuilderHelper.trustedOrigins",
+  "data:*");
+
+// Then, load Addon builder helper addon
+require("addons-builder-helper").main();
+
+// Utility function that opens a tab and attach a unit worker in it
+function createTest(contentScript, onWorkerReady) {
+  return function (test) {
+    test.waitUntilDone();
+
+    tabs.open({
+      url: "data:text/html,",
+      onReady: function(tab) {
+        let worker = tab.attach({
+          contentScript: [
+            // Add some unit test method in global content script scope
+            "new " + function ContentScriptScope() {
+              assert = function assert(value, msg)
+                self.port.emit("assert", value, msg);
+              assertEqual = function assertEqual(a, b, msg)
+                self.port.emit("assertEqual", a, b, msg);
+              done = function done() self.port.emit("done")
+            },
+            // Add given content script
+            contentScript
+          ]
+        });
+
+        function done() {
+          tab.close();
+          test.done();
+        }
+
+        worker.port.on("assert", function (value, msg) {
+          test.assert(value, msg);
+        });
+        worker.port.on("assertEqual", function (a, b, msg) {
+          test.assertEqual(a, b, msg);
+        });
+        worker.port.on("done", done);
+
+        if (typeof onWorkerReady == "function")
+          onWorkerReady(test, worker, done);
+      }
+    });
+  };
 }
 
-var abh = getModuleGlobal("addons-builder-helper");
+// Use "000" to execute this test first
+exports.test000createTest = createTest(
+  "new " + function ContentScriptScope() {
+    assert(true, "`assert` works");
+    assertEqual("a", "a", "`assertEqual` works");
+    self.port.on("test-worker-events", done);
+  },
+  function (test, worker, done) {
+    worker.port.emit("test-worker-events");
+  }
+);
 
-exports.testAddonConfigJsonIsValid = function(test) {
-  var config = abh.safeGetConfig();
-  test.assert(config.trustedOrigins.length > 0,
-              "At least one trusted origin exists");
-  // Ensure that trusted origins can be passed to the filter
-  // without any errors being logged.
-  require("trusted-origin-filter").wrap(config.trustedOrigins, function() {});
-};
+// Use "111" to execute this test second
+exports.test111Minimal = createTest(
+  "new " + function ContentScriptScope() {
+    assert("mozFlightDeck" in unsafeWindow, "`mozFlightDeck` is set");
+    let FD = unsafeWindow.mozFlightDeck;
+    assertEqual(typeof FD.send, "function", "`mozFlightDeck` has a `send` method");
+    assertEqual(typeof FD.send("version").then, "function", "`send` return an object with `then` method");
+    done();
+  },
+  function (test, worker, done) {
 
-exports.testAttachApiToChannel = function(test) {
-  var onMessage;
-  var fakeChannel = {
-    whenMessaged: function(cb) {
-      onMessage = cb;
+  }
+);
+
+exports.testVersion = createTest(
+  "new " + function ContentScriptScope() {
+    unsafeWindow.mozFlightDeck.send("version").then(function (data) {
+      assert(data.success, "'version' succeed");
+      self.port.emit("version", data.msg);
+    });
+  },
+  function (test, worker, done) {
+    worker.port.on("version", function (v) {
+      let version = require("self").version;
+      test.assertEqual(version, v, "'version' returns the correct version number");
+      done();
+    });
+  }
+);
+
+exports.testIsInstalled = createTest(
+  "new " + function ContentScriptScope() {
+    unsafeWindow.mozFlightDeck.send("isInstalled").then(function (data) {
+      assert(data.success, "'isInstalled' succeed");
+      assert(!data.isInstalled, "'isInstalled' returns false before calling `install`");
+      done();
+    });
+  },
+  function (test, worker, done) {}
+);
+
+exports.testIsInstalled = createTest(
+  "new " + function ContentScriptScope() {
+    let toggleCount = 1;
+    function toggle(command, result, callback) {
+      unsafeWindow.mozFlightDeck.send("toggleConsole", command).then(function (data) {
+        let n = toggleCount++;
+        assert(data.success, "'toggleConsole' with '" + command + "' succeed [" + n + "]");
+        assertEqual(data.msg, result, "'toggleConsole' returns " + result + " on '" + command + "' [" + n + "]");
+        callback();
+      });
     }
-  };
-  var lastXpiData;
-  var uninstallCalled = 0;
-  var fakeManager = {
-    isInstalled: false,
-    installedID: null,
-    install: function(xpiData) {
-      lastXpiData = xpiData;
-    },
-    uninstall: function() {
-      uninstallCalled++;
+    toggle("isOpen", false, function () {
+      toggle("open", null, function () {
+        toggle("isOpen", true, function () {
+          toggle("close", null, function () {
+            toggle("isOpen", false, function () {
+              done();
+            });
+          });
+        });
+      });
+    });
+  },
+  function (test, worker, done) {}
+);
+
+exports.testInstall = createTest(
+  "new " + function ContentScriptScope() {
+    function assertIsInstalled(addonId, msg, next) {
+      unsafeWindow.mozFlightDeck.send("isInstalled").then(function (data) {
+        assert(data.success, "'isInstalled' succeed");
+        if (addonId) {
+          assert(data.isInstalled, msg);
+          assertEqual(data.installedID, addonId, "`installedID` refer to the correct id");
+        }
+        else {
+          assert(!data.isInstalled, msg);
+          assertEqual(data.installedID, null, "`installedID` is null when isInstalled is false");
+        }
+        next();
+      });
     }
-  };
-  abh.attachApiToChannel(fakeChannel, fakeManager);
+    self.port.on("xpiData", function (xpiData) {
+      assertIsInstalled(false, "'isInstalled' is false before calling `install`", install);
+      function install() {
+        unsafeWindow.mozFlightDeck.send("install", xpiData).then(function (data) {
+          assert(data.success, "'install' succeed");
+          assertEqual(data.msg, "installed", "'install' msg is valid");
+          assertIsInstalled("abh-unit-test@mozilla.com", "'isInstalled' is true after successfull `install`", uninstall);
+        });
+      }
+    });
+    function uninstall() {
+      unsafeWindow.mozFlightDeck.send("uninstall").then(function (data) {
+        assert(data.success, "'uninstall' succeed");
+        assertEqual(data.msg, "uninstalled", "'uninstall' msg is valid");
+        assertIsInstalled(false, "'isInstalled' is false after calling `uninstall`", end);
+      });
+    }
+    function end() {
+      self.port.emit("uninstalled");
+    }
+  },
+  function (test, worker, done) {
 
-  test.assertEqual(JSON.stringify(onMessage({})),
-                   JSON.stringify({success: false, msg: "bad request"}));
-  test.assertEqual(JSON.stringify(onMessage({cmd: 'isInstalled'})),
-                   JSON.stringify({success: true, isInstalled: false,
-                                   installedID: null}));
-  fakeManager.isInstalled = true;
-  fakeManager.installedID = 'bleh';
-  test.assertEqual(JSON.stringify(onMessage({cmd: 'isInstalled'})),
-                   JSON.stringify({success: true, isInstalled: true,
-                                   installedID: 'bleh'}));
-  test.assertEqual(JSON.stringify(onMessage({cmd: 'install'})),
-                   JSON.stringify({success: false, msg: "need data"}));
-
-  test.assertEqual(lastXpiData, undefined);
-  test.assertEqual(JSON.stringify(onMessage({cmd: 'install',
-                                             contents: 'u'})),
-                   JSON.stringify({success: true, msg: "installed"}));
-  test.assertEqual(lastXpiData, 'u');
-  test.assertEqual(uninstallCalled, 0);
-  test.assertEqual(JSON.stringify(onMessage({cmd: 'uninstall'})),
-                   JSON.stringify({success: true, msg: "uninstalled"}));
-  test.assertEqual(uninstallCalled, 1);
-  test.assertEqual(JSON.stringify(onMessage({cmd: 'blap'})),
-                   JSON.stringify({success: false,
-                                   msg: "unknown command: blap"}));
-};
-
-exports.testSingleAddonManager = function(test) {
-  var unloadCalled = 0;
-
-  function fakeInstallExtension(xpiData) {
-    test.assertEqual(typeof(xpiData), "string");
-    return {
-      id: 'blargle',
-      unload: function() {
-        unloadCalled++;
+    // Save all events distpatched by bootstrap.js of the installed addon
+    let events = [];
+    let eventsObserver = {
+      observe: function (subject, topic, data) {
+        events.push(data);
       }
     };
-  };
+    Services.obs.addObserver(eventsObserver, "abh-unit-test", false);
 
-  var sam = new abh.SingleAddonManager(fakeInstallExtension);
-  test.assertEqual(sam.isInstalled, false);
-  test.assertEqual(sam.installedID, null);
-  sam.install("foo");
-  test.assertEqual(sam.isInstalled, true);
-  test.assertEqual(sam.installedID, 'blargle');
-  test.assertEqual(unloadCalled, 0);
-  sam.install("bar");
-  test.assertEqual(sam.isInstalled, true);
-  test.assertEqual(unloadCalled, 1);
-  sam.uninstall();
-  test.assertEqual(unloadCalled, 2);
-  sam.uninstall();
-  test.assertEqual(unloadCalled, 2);
-};
+    // We can't use self.data.load as it doesn't read in binary mode!
+    let xpiData = readBinaryURI(TEST_ADDON_URL);
+    worker.port.emit("xpiData", xpiData);
 
-exports.testChannelErrorWrapper = function(test) {
-  var func = abh.channelErrorWrapper(function() { return {msg: 'hi'}; });
-  test.assertEqual(JSON.stringify(func()),
-                   JSON.stringify({msg: 'hi'}),
-                   "channelErrorWrapper must passthrough return values");
-
-  var exceptions = [];
-  var mockConsole = {
-    exception: function(e) {
-      exceptions.push(e);
-    }
-  };
-
-  func = abh.channelErrorWrapper(function() { o(); },
-                                 mockConsole);
-  test.assertEqual(JSON.stringify(func()),
-                   JSON.stringify({success: false, msg: "internal error"}),
-                   "channelErrorWrapper must return JSON response on err");
-
-  test.assertEqual(exceptions[0].toString(),
-                   "ReferenceError: o is not defined",
-                   "channelErrorWrapper must log exceptions");
-};
+    worker.port.on("uninstalled", function () {
+      Services.obs.removeObserver(eventsObserver, "abh-unit-test");
+      test.assertEqual(JSON.stringify(events),
+                       JSON.stringify(["install", "startup", "shutdown", "uninstall"]),
+                       "addon's bootstrap.js functions have been called");
+      test.done();
+    });
+  }
+);

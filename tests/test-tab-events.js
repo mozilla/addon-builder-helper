@@ -1,15 +1,12 @@
 var tabEvents = require("tab-events");
-var tabBrowser = require("tab-browser");
-var timer = require("timer");
+var tabBrowser = require("api-utils/tab-browser");
+var timer = require("api-utils/timer");
 
 // TODO: Replace arb timeout w/ "real" deterministic event handling.
 const ARB_TIMEOUT = 100;
 
 exports.testDispatchTrivialEvent = function(test) {
-  var file = require("file");
-  var url = require("url");
-  var mydir = file.dirname(url.toFilename(__url__));
-  var indexUrl = url.fromFilename(file.join(mydir, "test-tab-events.html"));
+  var indexUrl = require("self").data.url("test-tab-events.html");
 
   var tracker = tabBrowser.whenContentLoaded(
     function(window) {
