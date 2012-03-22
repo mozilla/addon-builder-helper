@@ -6,7 +6,7 @@ const { Cc, Ci, Cu } = require("chrome");
 const tabs = require("addon-kit/tabs");
 const { Services } = Components.utils.import("resource://gre/modules/Services.jsm");
 
-const { readBinaryURI } = require("file-utils");
+const { getChromeURIContent } = require("api-utils/utils/data");
 
 const TEST_ADDON_URL = require("self").data.url("abh-unit-test@mozilla.com.xpi");
 
@@ -189,7 +189,7 @@ exports.testInstall = createTest(
     Services.obs.addObserver(eventsObserver, "abh-unit-test", false);
 
     // We can't use self.data.load as it doesn't read in binary mode!
-    let xpiData = readBinaryURI(TEST_ADDON_URL);
+    let xpiData = getChromeURIContent(TEST_ADDON_URL);
     worker.port.emit("xpiData", xpiData);
 
     worker.port.on("uninstalled", function () {
