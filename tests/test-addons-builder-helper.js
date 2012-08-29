@@ -4,7 +4,7 @@
 
 const { Cc, Ci, Cu } = require("chrome");
 const tabs = require("addon-kit/tabs");
-const { Services } = Components.utils.import("resource://gre/modules/Services.jsm");
+const { Services } = Cu.import("resource://gre/modules/Services.jsm");
 
 const { getChromeURIContent } = require("api-utils/utils/data");
 
