@@ -6,7 +6,19 @@ const { Cc, Ci, Cu } = require("chrome");
 const tabs = require("addon-kit/tabs");
 const { Services } = Cu.import("resource://gre/modules/Services.jsm");
 
-const { getChromeURIContent } = require("api-utils/utils/data");
+const IOService = Cc["@mozilla.org/network/io-service;1"].
+                  getService(Ci.nsIIOService);
+function getChromeURIContent(chromeURI) {
+  let channel = IOService.newChannel(chromeURI, null, null);
+  let input = channel.open();
+  let stream = Cc["@mozilla.org/binaryinputstream;1"].
+                createInstance(Ci.nsIBinaryInputStream);
+  stream.setInputStream(input);
+  let content = stream.readBytes(input.available());
+  stream.close();
+  input.close();
+  return content;
+}
 
 const TEST_ADDON_URL = require("self").data.url("abh-unit-test@mozilla.com.xpi");
 
